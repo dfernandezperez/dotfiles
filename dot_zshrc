@@ -122,6 +122,6 @@ if [ -f "$HOME"/.bash_settings ]; then
 fi
 
 # Load custom code. Intended for settings specific to the machine. Not to be added to dotfiles repo.
-if [ -f "$HOME"/.bash_local ]; then
-    \. "$HOME"/.bash_local
+if [ -f "$HOME"/.zsh_local ]; then
+    \. "$HOME"/.zsh_local
 fi

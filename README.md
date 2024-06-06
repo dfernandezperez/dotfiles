@@ -11,7 +11,7 @@ Prerequisite: zsh, zplug, autojump, chezmoi
 curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh
 
 # Install autojump
-git clone git://github.com/wting/autojump.git
+git clone https://github.com/wting/autojump.git
 cd autojump
 ./install.py
 cd ..
