@@ -1,0 +1,30 @@
+# -*-mode:bash-*- vim:ft=bash
+
+# ~/.bash_settings
+# =============================================================================
+# Shell settings sourced by `~/.bashrc` and `~/.zshrc`.
+
+# shellcheck shell=bash
+
+# Development environments
+# -----------------------------------------------------------------------------
+
+# You may need to manually set your language environment
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# Bindkeys
+#bindkey "^[^[[C" forward-word
+#bindkey "^[^[[D" backward-word
+#bindkey "^[[1;10C" end-of-line
+#bindkey "^[[1;10D" beginning-of-line
+#https://stackoverflow.com/questions/6205157/how-to-set-keyboard-shortcuts-to-jump-to-beginning-end-of-line/29403520#29403520
+bindkey "^U" backward-kill-line
+bindkey "^X^_" redo
+
+# Remove user@host from terminal
+prompt_context() {
+  if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
+    prompt_segment black default "%(!.%{%F{yellow}%}.)$USER"
+  fi
+}

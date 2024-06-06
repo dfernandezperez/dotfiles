@@ -1,0 +1,244 @@
+# -*-mode:bash-*- vim:ft=bash
+
+# ~/.bashrc
+# =============================================================================
+# Executed by bash for non-login shells.
+#
+# See https://www.gnu.org/software/bash/manual/html_node/index.html
+
+# shellcheck shell=bash
+# shellcheck source=/dev/null
+
+# If not running interactively, don't do anything.
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+
+# General
+# -----------------------------------------------------------------------------
+
+# Check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# Matches filenames in a case-insensitive fashion when doing filename expansion.
+# shopt -s nocaseglob;
+
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
+
+# Do not autocomplete when accidentally pressing Tab on an empty line.
+shopt -s no_empty_cmd_completion;
+
+# Do not overwrite files when redirecting using ">" (override this with ">|").
+set -o noclobber;
+
+# Configure less:
+#   F: automatically exit if the entire file can be displayed in first screen.
+#   I: case-insensitive search.
+#   R: Show ANSI colors.
+#   S: Truncate long lines.
+#   X: Prevent clearing the screen when exiting.
+# See: https://relentlesscoding.com/2019/01/06/make-less-options-permanent-or-the-missing-lessrc/
+export LESS="FIRSX"
+
+# Make less more friendly for non-text input files.
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+
+# History
+# -----------------------------------------------------------------------------
+
+# Append to the history file, don't overwrite it.
+shopt -s histappend;
+
+# Keep invalid history operation entries.
+shopt -s histreedit;
+
+# Ignore commands that start with spaces, and ignore consecutive duplicates.
+# This is a verbose way of saying `ignoreboth`.
+export HISTCONTROL=ignorespace:ignoredups;
+
+# Keep a reasonably long history.
+export HISTSIZE=4096;
+
+# Keep even more history lines inside the file, so we can still look up
+# previous commands without needlessly cluttering the current shell's history.
+export HISTFILESIZE=16384;
+
+# Keep track of the time the commands were executed.
+# The xterm colour escapes require special care when piping; e.g. "| less -R".
+export HISTTIMEFORMAT="%Y-%m-%d %H:%M:%S  ";
+
+# Allow going up (CTRL+R) and down (CTRL+S) shell history.
+[[ $- == *i* ]] && stty -ixon
+
+
+# Colors
+# -----------------------------------------------------------------------------
+
+# Set colors for dark Terminal themes.
+export CLICOLOR=1;
+export LSCOLORS=GxFxCxDxBxegedabagaced;
+
+# Enable color support of ls.
+if [ -x /usr/bin/dircolors ]; then
+    # shellcheck disable=SC2015
+    test -r "$HOME"/.dircolors && eval "$(dircolors -b "$HOME"/.dircolors)" || eval "$(dircolors -b)"
+fi
+
+# Enable colored GCC warnings and errors.
+export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+
+# enable color support of ls and also add handy aliases
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+
+# Prompt
+# -----------------------------------------------------------------------------
+
+# Set to 'yes' for a colored prompt, if the terminal has the capability.
+force_color_prompt=yes
+
+# Set a fancy prompt (non-color, unless we know we "want" color).
+case "$TERM" in
+    xterm-color|*-256color) color_prompt=yes;;
+esac
+
+if [ -n "${force_color_prompt:?}" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+        # We have color support; assume it's compliant with Ecma-48
+        # (ISO/IEC-6429). Lack of such support is extremely rare, and such
+        # a case would tend to support setf rather than setaf.
+        color_prompt=yes
+    else
+        color_prompt=
+    fi
+fi
+unset force_color_prompt
+
+# Set variable identifying the chroot you work in (see default prompt below).
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+# Make default first prompt string informative, and optionally colorful.
+# Basic style: "user@hostname:/current/path$ "
+# Date style:  "
+#               [01 Jan, 14:00:00] user@hostname:/current/path$ "
+if [ "$color_prompt" = yes ]; then
+    # Basic style
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+
+    # Date style
+    # PS1="\n\[\033[31m\][\D{%d %b}, \t] ${debian_chroot:+($debian_chroot)}\[\033[36m\]\u\[\033[m\]@\[\033[32m\]\h:\[\033[33;1m\]\w\[\033[m\]\$ ";
+    SUDO_PS1="\n[\D{%d %b}, \t] ${debian_chroot:+($debian_chroot)}\[\e[90;01;41m\]\u@\h\[\e[0m\]:\$PWD\$ ";
+    export SUDO_PS1
+else
+    # Basic style
+    PS1="${debian_chroot:+($debian_chroot)}\u@\h:\w\$ "
+
+    # Date style
+    PS1="\n[\D{%d %b}, \t] $PS1"
+fi
+
+
+# Xterm
+# -----------------------------------------------------------------------------
+
+# If this is an xterm set the title to "user@host:dir".
+case "$TERM" in
+xterm*|rxvt*)
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    ;;
+*)
+    ;;
+esac
+
+# Set Xterm/screen/Tmux title with only a short hostname.
+# Uncomment this (or set SHORT_HOSTNAME to something else),
+# Will otherwise fall back on $HOSTNAME.
+SHORT_HOSTNAME=$(hostname -s)
+export SHORT_HOSTNAME
+
+# Set Xterm/screen/Tmux title with only a short username.
+# Uncomment this (or set SHORT_USER to something else),
+# Will otherwise fall back on $USER.
+export SHORT_USER="${USER:0:8}"
+
+# Set Xterm/screen/Tmux title with shortened command and directory.
+# Uncomment this to set.
+export SHORT_TERM_LINE=true
+
+
+# Command-line shell completions
+# -----------------------------------------------------------------------------
+
+# Enable programmable completion features (you don't need to enable
+# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+# sources /etc/bash.bashrc).
+if ! shopt -oq posix; then
+    if [ -f /usr/share/bash-completion/bash_completion ]; then
+        \. /usr/share/bash-completion/bash_completion
+    elif [ -f /etc/bash_completion ]; then
+        \. /etc/bash_completion
+    fi
+fi
+
+
+# Includes
+# -----------------------------------------------------------------------------
+
+# Load functions declarations from separate configuration file.
+if [ -f "$HOME"/.bash_functions ]; then
+    \. "$HOME"/.bash_functions
+fi
+
+# Load alias definitions from separate configuration file.
+if [ -f "$HOME"/.bash_aliases ]; then
+    \. "$HOME"/.bash_aliases
+fi
+
+# Load cross-compatible Bash exports, flags and settings from separate file.
+if [ -f "$HOME"/.bash_settings ]; then
+    \. "$HOME"/.bash_settings
+fi
+
+# Load custom code. Intended for settings specific to the machine. Not to be added to dotfiles repo.
+if [ -f "$HOME"/.bash_local ]; then
+    \. "$HOME"/.bash_local
+fi
+
+
+# Finalization
+# -----------------------------------------------------------------------------
+
+# Add missing paths to PATH.
+if [ -d "/usr/local/sbin" ]; then
+    export PATH="/usr/local/sbin:$PATH"
+fi
+
+# Remove any duplicate paths.
+# See https://stackoverflow.com/questions/11650840/remove-redundant-paths-from-path-variable
+PATH="$(echo "$PATH" | awk 'BEGIN{RS=":";}
+{sub(sprintf("%c$",10),"");if(A[$0]){}else{A[$0]=1;
+printf(((NR==1)?"":":")$0)}}')";
+export PATH
+
+# Set zsh shell as default
+# Run zsh
+ if [ "$SHELL" != "/usr/bin/zsh" ]
+ then
+     export SHELL="/usr/bin/zsh"
+     exec /usr/bin/zsh
+ fi
+

@@ -1,0 +1,120 @@
+# -*-mode:bash-*- vim:ft=bash
+
+# ~/.bash_functions
+# =============================================================================
+# Shell functions sourced by `~/.bashrc` and `~/.zshrc`.
+
+# shellcheck shell=bash
+
+# Archives
+# -----------------------------------------------------------------------------
+
+#!/bin/bash
+
+# Define the function that flattens files
+function flatten_files() {
+  # Get the directory to flatten as the first argument to the function
+  dir_to_flatten="$1"
+  # All further arguments are passed to find. Use this for example to exclude files
+
+  # If no directory is specified, use the current directory
+  if [[ -z "$dir_to_flatten" ]]; then
+    dir_to_flatten="."
+  fi
+  comment_string_base="### FILE: "
+
+  # Print a header with information about the directory being flattened
+  echo "###############################################"
+  echo ""
+  echo "After this header you will find the flattended content of the directory $dir_to_flatten"
+  echo ""
+  echo "### FILE SEPARATORS/INDICATORS:" 
+  echo ""
+  echo "The start of a new file content is indicated by the following comment string:"
+  echo "\n$comment_string_base<relative_path_to_file>\n"
+  echo ""
+  echo "### DIRECTORY TREE OF $dir_to_flatten:"
+  echo ""
+  tree "$dir_to_flatten"
+  echo ""
+  echo "###############################################"
+
+  # Loop through all files in the directory and its subdirectories
+  find "$dir_to_flatten" "${@:2}" -type f | while read file; do
+
+    # Get the relative path and file name
+    relative_path=$(realpath --relative-to="$dir_to_flatten" "$file")
+
+    # Add the comment string and file contents to the output
+    comment_string="$comment_string_base$relative_path"
+    echo -e "\n$comment_string\n"
+    cat "$file"
+  done
+}
+# Define the alias that prints to the terminal
+alias flatten_to_terminal='flatten_files'
+
+
+# as suggested by Mendel Cooper in "Advanced Bash Scripting Guide", general extract function for almost all compressed data
+# Extracts common file formats.
+# Syntax: `extract <file1>`
+# Source: https://github.com/xvoland/Extract
+function extract {
+    if [ -z "$1" ]; then
+        echo "Usage: extract <path/file_name>.<zip|rar|bz2|gz|tar|tbz2|tgz|Z|7z|xz|ex|tar.bz2|tar.gz|tar.xz>"
+        echo "       extract <path/file_name_1.ext> [path/file_name_2.ext] [path/file_name_3.ext]"
+        return 0
+    fi
+
+    for n in "$@"
+    do
+    if [ -f "$n" ] ; then
+        case "${n%,}" in
+            *.cbt|*.tar.bz2|*.tar.gz|*.tar.xz|*.tbz2|*.tgz|*.txz|*.tar)
+                         tar xvf "$n"       ;;
+            *.lzma)      unlzma ./"$n"      ;;
+            *.bz2)       bunzip2 ./"$n"     ;;
+            *.cbr|*.rar)       unrar x -ad ./"$n" ;;
+            *.gz)        gunzip ./"$n"      ;;
+            *.cbz|*.epub|*.zip)       unzip ./"$n"       ;;
+            *.z)         uncompress ./"$n"  ;;
+            *.7z|*.apk|*.arj|*.cab|*.cb7|*.chm|*.deb|*.dmg|*.iso|*.lzh|*.msi|*.pkg|*.rpm|*.udf|*.wim|*.xar)
+                         7z x ./"$n"        ;;
+            *.xz)        unxz ./"$n"        ;;
+            *.exe)       cabextract ./"$n"  ;;
+            *.cpio)      cpio -id < ./"$n"  ;;
+            *.cba|*.ace)      unace x ./"$n"      ;;
+            *.zpaq)      zpaq x ./"$n"      ;;
+            *.arc)         arc e ./"$n"       ;;
+            *.cso)       ciso 0 ./"$n" ./"$n.iso" && \
+                              extract "$n".iso && \rm -f "$n" ;;
+            *)
+                         echo "extract: '$n' - unknown archive method"
+                         return 1
+                         ;;
+        esac
+    else
+        echo "'$n' - file does not exist"
+        return 1
+    fi
+    done
+}
+
+
+# Searches history for a string, or lists all history.
+# Syntax: `historysearch <string>`
+function history_search() {
+    if [ -z "$1" ]; then
+        history
+    else
+        history | grep "$1"
+    fi
+}
+
+# Searches session history for a string, or lists all session history.
+# Syntax: `history_session_search <string>`
+function history_session_search() {
+    prefix=$(date +"$HISTTIMEFORMAT")
+    offset=$((8 + ${#prefix}))
+    comm -23 <(history | cut -c ${offset}-) "${HISTFILE:-'~/.bash_history'}" | grep "$1"
+}
