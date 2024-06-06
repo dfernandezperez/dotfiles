@@ -236,9 +236,9 @@ export PATH
 
 # Set zsh shell as default
 # Run zsh
- if [ "$SHELL" != "/usr/bin/zsh" ]
- then
-     export SHELL="/usr/bin/zsh"
-     exec /usr/bin/zsh
- fi
+# if [ "$SHELL" != "/usr/bin/zsh" ]
+# then
+#     export SHELL="/usr/bin/zsh"
+#     exec /usr/bin/zsh
+# fi
 
