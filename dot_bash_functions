@@ -104,13 +104,13 @@ function extract {
 # Searches history for a string, or lists all history.
 # Syntax: `historysearch <string>`
 function history_search() {
-  if [ "$SHELL" != "/usr/bin/zsh" ]; then
+  if [ "$SHELL" = "/usr/bin/zsh" ]; then
     if [ -z "$1" ]; then
       history 1
     else
       history 1 | grep "$1"
     fi
-  elif [ "$SHELL" != "/usr/bin/sh" ]; then
+  elif [ "$SHELL" = "/usr/bin/sh" ]; then
     if [ -z "$1" ]; then
       history
     else
